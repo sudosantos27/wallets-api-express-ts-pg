@@ -1,10 +1,14 @@
+# GitHub Actions CI pipeline for build, lint, typecheck, DB migrations, tests & coverage.
+# Uses a job-scoped PostgreSQL service and waits for it to become ready
+# before running Prisma migrations to avoid flakiness.
+
 name: CI
 
 on:
   push:
-    branches: ["**"]
+    branches: ["**"] # run on all branches
   pull_request:
-    branches: ["**"]
+    branches: ["**"] # run on all PRs
 
 jobs:
   build-and-test:
@@ -18,12 +22,16 @@ jobs:
           POSTGRES_USER: app
           POSTGRES_PASSWORD: app
           POSTGRES_DB: walletsdb_test
-        # No ports mapping needed; we'll use hostname "postgres" from the job.
+        # Built-in healthcheck to ensure the DB becomes ready.
+        # The job network gives us the hostname "postgres".
         options: >-
           --health-cmd="pg_isready -U app -d walletsdb_test"
           --health-interval=5s
           --health-timeout=5s
           --health-retries=10
+        # If you need to debug locally, you can map ports (not required in CI):
+        # ports:
+        #   - 5432:5432
 
     env:
       # Use the service hostname "postgres" inside the job network:
@@ -52,6 +60,11 @@ jobs:
 
       - name: Generate Prisma client
         run: npx prisma generate
+
+      # Important: some Postgres images report "healthy" before fully accepting TCP.
+      # This explicit wait reduces flakiness for the next step (migrations).
+      - name: Wait for Postgres (TCP 5432)
+        run: npx wait-on -t 120000 tcp:postgres:5432
 
       - name: Apply DB migrations (non-interactive)
         run: npx prisma migrate deploy
@@ -84,13 +97,8 @@ jobs:
           path: coverage/lcov.info
           if-no-files-found: error
 
-      # Optional: OpenAPI lint (if you add @redocly/cli or spectral)
-      # - name: Lint OpenAPI
-      #   run: npx @redocly/cli lint src/docs/openapi.yaml
-
-      # Optional: Upload artifacts (coverage, OpenAPI JSON)
-      # - name: Upload coverage
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: coverage
-      #     path: coverage/
+      # Optional debug helpers (uncomment if you need to inspect the Postgres container)
+      # - name: Debug services
+      #   run: |
+      #     docker ps
+      #     docker logs "$(docker ps --format '{{.Names}}' | grep postgres)" --tail 200 || true
