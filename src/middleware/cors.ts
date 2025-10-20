@@ -2,18 +2,18 @@
 // - In production, only allow explicit origins from CORS_ORIGINS (comma-separated).
 // - In development/test, allow all if no CORS_ORIGINS is provided.
 
-import cors, { CorsOptions } from "cors";
+import cors, { CorsOptions } from 'cors';
 
 function parseOrigins(raw?: string): string[] {
   if (!raw) return [];
   return raw
-    .split(",")
+    .split(',')
     .map((s) => s.trim())
     .filter((s) => s.length > 0);
 }
 
 export function buildCors() {
-  const isProd = process.env.NODE_ENV === "production";
+  const isProd = process.env.NODE_ENV === 'production';
   const whitelist = parseOrigins(process.env.CORS_ORIGINS);
 
   let options: CorsOptions;
@@ -25,12 +25,12 @@ export function buildCors() {
         // Allow non-browser clients (no origin) like curl/postman by default
         if (!origin) return callback(null, true);
         if (whitelist.includes(origin)) return callback(null, true);
-        return callback(new Error("Not allowed by CORS"));
+        return callback(new Error('Not allowed by CORS'));
       },
       credentials: false,
-      methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-      allowedHeaders: ["Content-Type", "Authorization", "X-Request-Id"],
-      exposedHeaders: ["X-Request-Id", "RateLimit-Limit", "RateLimit-Remaining", "RateLimit-Reset"],
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-Id'],
+      exposedHeaders: ['X-Request-Id', 'RateLimit-Limit', 'RateLimit-Remaining', 'RateLimit-Reset'],
       maxAge: 600,
     };
   } else {
@@ -38,9 +38,9 @@ export function buildCors() {
     options = {
       origin: whitelist.length > 0 ? whitelist : true,
       credentials: false,
-      methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-      allowedHeaders: ["Content-Type", "Authorization", "X-Request-Id"],
-      exposedHeaders: ["X-Request-Id", "RateLimit-Limit", "RateLimit-Remaining", "RateLimit-Reset"],
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-Id'],
+      exposedHeaders: ['X-Request-Id', 'RateLimit-Limit', 'RateLimit-Remaining', 'RateLimit-Reset'],
       maxAge: 600,
     };
   }

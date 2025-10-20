@@ -20,7 +20,7 @@ export default defineConfig({
         'eslint.config.cjs',
         'vitest.config.ts',
         'src/lib/prisma.ts',
-        "src/env.schema.ts",
+        'src/env.schema.ts',
         'src/lib/logger.ts',
       ],
       thresholds: { statements: 85, branches: 75, functions: 80, lines: 85 },

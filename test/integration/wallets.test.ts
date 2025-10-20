@@ -63,10 +63,7 @@ describe('Wallets - CRUD', () => {
       .expect(204);
 
     // Verify 404 after delete
-    await request(app)
-      .get(`/v1/wallets/${id}`)
-      .set('Authorization', `Bearer ${token}`)
-      .expect(404);
+    await request(app).get(`/v1/wallets/${id}`).set('Authorization', `Bearer ${token}`).expect(404);
   });
 
   it('should validate input on PUT (400)', async () => {
@@ -98,43 +95,43 @@ describe('Wallets - CRUD', () => {
     const token = await getAccessToken();
 
     const body = {
-        tag: 'Dup1',
-        chain: 'ethereum',
-        address: '0x1234567890123456789012345678901234567890',
+      tag: 'Dup1',
+      chain: 'ethereum',
+      address: '0x1234567890123456789012345678901234567890',
     };
 
     await request(app)
-        .post('/v1/wallets')
-        .set('Authorization', `Bearer ${token}`)
-        .send(body)
-        .expect(201);
+      .post('/v1/wallets')
+      .set('Authorization', `Bearer ${token}`)
+      .send(body)
+      .expect(201);
 
     const res = await request(app)
-        .post('/v1/wallets')
-        .set('Authorization', `Bearer ${token}`)
-        .send({ ...body, tag: 'Dup2' })
-        .expect(409);
+      .post('/v1/wallets')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ ...body, tag: 'Dup2' })
+      .expect(409);
 
     expect(res.body?.error?.code).toBe('CONFLICT');
-    });
+  });
 
-    it('should return 404 for a valid but non-existent wallet id', async () => {
+  it('should return 404 for a valid but non-existent wallet id', async () => {
     const token = await getAccessToken();
     const validButMissingId = '123e4567-e89b-12d3-a456-426614174000';
 
     const res = await request(app)
-        .get(`/v1/wallets/${validButMissingId}`)
-        .set('Authorization', `Bearer ${token}`)
-        .expect(404);
+      .get(`/v1/wallets/${validButMissingId}`)
+      .set('Authorization', `Bearer ${token}`)
+      .expect(404);
 
     expect(res.body?.error?.code).toBe('NOT_FOUND');
-    });
+  });
 
-    it('should return 401 on invalid token', async () => {
+  it('should return 401 on invalid token', async () => {
     const res = await request(app)
-        .get('/v1/wallets')
-        .set('Authorization', 'Bearer INVALID')
-        .expect(401);
+      .get('/v1/wallets')
+      .set('Authorization', 'Bearer INVALID')
+      .expect(401);
     expect(res.body?.error?.code).toBe('UNAUTHORIZED');
-    });
+  });
 });

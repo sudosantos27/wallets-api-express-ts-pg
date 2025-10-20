@@ -1,8 +1,8 @@
 // Auth controller: request/response mapping for signin and signout.
 
-import { Request, Response, NextFunction } from "express";
-import { SignInBodySchema } from "../schemas/auth.schema";
-import { authService } from "../services/auth.service";
+import { Request, Response, NextFunction } from 'express';
+import { SignInBodySchema } from '../schemas/auth.schema';
+import { authService } from '../services/auth.service';
 
 export const signIn = async (req: Request, res: Response, next: NextFunction) => {
   try {

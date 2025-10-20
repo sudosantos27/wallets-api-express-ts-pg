@@ -6,52 +6,52 @@ Backend API for managing users and their wallets. Built with **Express + TypeScr
 
 ## Table of Contents
 
-* [Tech Stack](#tech-stack)
-* [Features](#features)
-* [Project Structure](#project-structure)
-* [Prerequisites](#prerequisites)
-* [Environment](#environment)
-* [Quick Start (Local Dev)](#quick-start-local-dev)
-* [API Docs (Swagger UI)](#api-docs-swagger-ui)
-* [Auth Flow](#auth-flow)
-* [Error Model](#error-model)
-* [Health & Readiness](#health--readiness)
-* [Quality Gates](#quality-gates)
-* [Testing & Coverage](#testing--coverage)
-* [Linting & Formatting](#linting--formatting)
-* [OpenAPI Lint](#openapi-lint)
-* [Running with Docker Compose (optional)](#running-with-docker-compose-optional)
-* [Handy cURL Snippets](#handy-curl-snippets)
-* [Troubleshooting](#troubleshooting)
-* [License](#license)
+- [Tech Stack](#tech-stack)
+- [Features](#features)
+- [Project Structure](#project-structure)
+- [Prerequisites](#prerequisites)
+- [Environment](#environment)
+- [Quick Start (Local Dev)](#quick-start-local-dev)
+- [API Docs (Swagger UI)](#api-docs-swagger-ui)
+- [Auth Flow](#auth-flow)
+- [Error Model](#error-model)
+- [Health & Readiness](#health--readiness)
+- [Quality Gates](#quality-gates)
+- [Testing & Coverage](#testing--coverage)
+- [Linting & Formatting](#linting--formatting)
+- [OpenAPI Lint](#openapi-lint)
+- [Running with Docker Compose (optional)](#running-with-docker-compose-optional)
+- [Handy cURL Snippets](#handy-curl-snippets)
+- [Troubleshooting](#troubleshooting)
+- [License](#license)
 
 ---
 
 ## Tech Stack
 
-* **Runtime**: Node.js, Express 5
-* **Language**: TypeScript
-* **DB**: PostgreSQL + Prisma ORM
-* **Auth**: JWT (HS256)
-* **Validation**: Zod
-* **Docs**: OpenAPI 3.0.3 (Swagger UI)
-* **Logging**: Pino + pino-http (+ X-Request-Id)
-* **Security**: Helmet, CORS, Rate limiting
-* **Tests**: Vitest, Supertest
-* **CI**: GitHub Actions (migrations, seed, lint, format, typecheck, build, OpenAPI lint, tests + coverage artifact)
+- **Runtime**: Node.js, Express 5
+- **Language**: TypeScript
+- **DB**: PostgreSQL + Prisma ORM
+- **Auth**: JWT (HS256)
+- **Validation**: Zod
+- **Docs**: OpenAPI 3.0.3 (Swagger UI)
+- **Logging**: Pino + pino-http (+ X-Request-Id)
+- **Security**: Helmet, CORS, Rate limiting
+- **Tests**: Vitest, Supertest
+- **CI**: GitHub Actions (migrations, seed, lint, format, typecheck, build, OpenAPI lint, tests + coverage artifact)
 
 ---
 
 ## Features
 
-* JWT sign-in / sign-out (stateless).
-* Wallets CRUD **scoped to the authenticated user**.
-* Strong validation with Zod and precise error codes (400/401/404/409/429/500).
-* Request correlation id (`X-Request-Id`) across logs and responses.
-* Rate limiting (`/v1/*` scope) with `RateLimit-*` headers.
-* CORS configurable per environment.
-* Health (`/health`) & Readiness (`/ready` with DB check).
-* Strict quality gates (ESLint, Prettier, coverage thresholds, OpenAPI lint).
+- JWT sign-in / sign-out (stateless).
+- Wallets CRUD **scoped to the authenticated user**.
+- Strong validation with Zod and precise error codes (400/401/404/409/429/500).
+- Request correlation id (`X-Request-Id`) across logs and responses.
+- Rate limiting (`/v1/*` scope) with `RateLimit-*` headers.
+- CORS configurable per environment.
+- Health (`/health`) & Readiness (`/ready` with DB check).
+- Strict quality gates (ESLint, Prettier, coverage thresholds, OpenAPI lint).
 
 ---
 
@@ -97,8 +97,8 @@ test/
 
 ## Prerequisites
 
-* **Node.js 18+** (recommended 20)
-* **Docker** (for local PostgreSQL via `docker compose`)
+- **Node.js 18+** (recommended 20)
+- **Docker** (for local PostgreSQL via `docker compose`)
 
 ---
 
@@ -154,8 +154,8 @@ npm run seed
 
 Seeded users:
 
-* `alice@example.com` / `Password123!`
-* `bob@example.com` / `Password123!`
+- `alice@example.com` / `Password123!`
+- `bob@example.com` / `Password123!`
 
 4. **Run the API (dev)**
 
@@ -173,8 +173,8 @@ npx prisma studio
 
 ## API Docs (Swagger UI)
 
-* **Swagger UI**: `http://localhost:3000/docs`
-* **OpenAPI JSON**: `http://localhost:3000/docs.json`
+- **Swagger UI**: `http://localhost:3000/docs`
+- **OpenAPI JSON**: `http://localhost:3000/docs.json`
 
 **Authorize (JWT):**
 
@@ -186,9 +186,9 @@ npx prisma studio
 
 ## Auth Flow
 
-* **POST `/v1/signin`** → returns `{ accessToken }` (JWT).
-* **POST `/v1/signout`** → stateless (client should discard the token).
-* All `/v1/*` endpoints require `Authorization: Bearer <token>`.
+- **POST `/v1/signin`** → returns `{ accessToken }` (JWT).
+- **POST `/v1/signout`** → stateless (client should discard the token).
+- All `/v1/*` endpoints require `Authorization: Bearer <token>`.
 
 ---
 
@@ -201,7 +201,7 @@ All errors have the same shape:
   "error": {
     "code": "VALIDATION_ERROR | UNAUTHORIZED | NOT_FOUND | CONFLICT | TOO_MANY_REQUESTS | INTERNAL_SERVER_ERROR",
     "message": "Human-readable message",
-    "details": [ { "...": "optional structured details" } ],
+    "details": [{ "...": "optional structured details" }],
     "requestId": "correlation id, if available"
   }
 }
@@ -213,18 +213,18 @@ See OpenAPI examples in Swagger UI for each operation.
 
 ## Health & Readiness
 
-* **`GET /health`** → `200 OK`, body: `OK` (liveness).
-* **`GET /ready`** → `200 READY` only if DB is reachable; otherwise `500`.
+- **`GET /health`** → `200 OK`, body: `OK` (liveness).
+- **`GET /ready`** → `200 READY` only if DB is reachable; otherwise `500`.
 
 ---
 
 ## Quality Gates
 
-* **ESLint**: style & best practices
-* **Prettier**: formatting
-* **TypeScript**: `tsc --noEmit`
-* **OpenAPI lint (Redocly)**: spec quality
-* **Vitest coverage thresholds**: build fails if coverage drops
+- **ESLint**: style & best practices
+- **Prettier**: formatting
+- **TypeScript**: `tsc --noEmit`
+- **OpenAPI lint (Redocly)**: spec quality
+- **Vitest coverage thresholds**: build fails if coverage drops
 
 CI pipeline (GitHub Actions) runs: install → prisma validate/generate → migrate → seed → lint → format:check → typecheck → build → OpenAPI lint → tests (coverage) → uploads LCOV artifact.
 
@@ -232,19 +232,19 @@ CI pipeline (GitHub Actions) runs: install → prisma validate/generate → migr
 
 ## Testing & Coverage
 
-* Run all tests (verbose):
+- Run all tests (verbose):
 
 ```bash
 npm test
 ```
 
-* Run with coverage (enforces thresholds):
+- Run with coverage (enforces thresholds):
 
 ```bash
 npm run coverage
 ```
 
-* Open coverage report:
+- Open coverage report:
 
 ```bash
 open coverage/index.html         # macOS
@@ -289,9 +289,9 @@ Warnings/errors will point to exact nodes in `src/docs/openapi.yaml`.
 docker compose up -d
 ```
 
-* `db` → PostgreSQL 16 with a healthcheck.
-* `migrator` → waits for `db` to be healthy, then runs `npm ci && npx prisma generate && npx prisma migrate deploy` **once**.
-* `api` → runs `npm ci && npx prisma generate && npm run dev` mounted to your local source (hot reload), exposed on **[http://localhost:3000](http://localhost:3000)**.
+- `db` → PostgreSQL 16 with a healthcheck.
+- `migrator` → waits for `db` to be healthy, then runs `npm ci && npx prisma generate && npx prisma migrate deploy` **once**.
+- `api` → runs `npm ci && npx prisma generate && npm run dev` mounted to your local source (hot reload), exposed on **[http://localhost:3000](http://localhost:3000)**.
 
 ### Logs & status
 
@@ -309,9 +309,9 @@ docker compose down -v           # stop and remove the DB volume (full reset)
 
 ### Environment
 
-* The compose file sets env vars for `db`, `migrator`, and `api` services.
-* Adjust credentials/ports or map values from a `.env` file if you prefer Compose variable substitution.
-* Inside Compose, the DB host is **`db`**; from host Node it’s usually **`localhost`**.
+- The compose file sets env vars for `db`, `migrator`, and `api` services.
+- Adjust credentials/ports or map values from a `.env` file if you prefer Compose variable substitution.
+- Inside Compose, the DB host is **`db`**; from host Node it’s usually **`localhost`**.
 
 ### Alternative (host Node + Compose DB)
 
@@ -373,20 +373,20 @@ curl -i -X DELETE http://localhost:3000/v1/wallets/$WALLET_ID \
 
 ## Troubleshooting
 
-* **DB connection errors**
+- **DB connection errors**
   Ensure Postgres is up: `docker compose ps` and `docker compose logs db`.
   Check `DATABASE_URL` host (`db` inside Compose networks, `localhost` otherwise).
 
-* **Migrations / Prisma client**
+- **Migrations / Prisma client**
   If schema changes: `npx prisma generate && npx prisma migrate dev`.
 
-* **JWT errors in Swagger**
+- **JWT errors in Swagger**
   Make sure to include `Bearer <token>` (with a space) in the Authorize dialog.
 
-* **CORS blocked** (browser)
+- **CORS blocked** (browser)
   In production, set `CORS_ORIGINS` to your frontend origins (comma-separated).
 
-* **Rate limiting (429)**
+- **Rate limiting (429)**
   Default is 100 requests per 15 minutes per IP under `/v1`. See `RATE_LIMIT_*`.
 
 ---

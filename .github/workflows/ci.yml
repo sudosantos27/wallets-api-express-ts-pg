@@ -5,9 +5,9 @@ name: CI
 
 on:
   push:
-    branches: ["**"] # run on all branches
+    branches: ['**'] # run on all branches
   pull_request:
-    branches: ["**"] # run on all PRs
+    branches: ['**'] # run on all PRs
 
 jobs:
   build-and-test:
@@ -23,7 +23,7 @@ jobs:
           POSTGRES_DB: walletsdb_test
         # Publish container port 5432 to the runner, so we can reach it via localhost:5432
         ports:
-          - "5432:5432"
+          - '5432:5432'
         # Healthcheck helps ensure the DB is accepting connections.
         options: >-
           --health-cmd="pg_isready -U app -d walletsdb_test"

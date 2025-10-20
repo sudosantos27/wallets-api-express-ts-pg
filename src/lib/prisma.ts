@@ -2,15 +2,14 @@
 // - In development or with LOG_LEVEL=debug/trace, logs query and duration.
 // - Avoids noisy logs in production.
 
-import { PrismaClient } from "@prisma/client";
-import { logger } from "./logger";
+import { PrismaClient } from '@prisma/client';
+import { logger } from './logger';
 
 declare global {
-   
   var __prisma__: PrismaClient | undefined;
 }
 
-const isProd = process.env.NODE_ENV === "production";
+const isProd = process.env.NODE_ENV === 'production';
 
 export const prisma: PrismaClient =
   global.__prisma__ ??
@@ -20,14 +19,11 @@ export const prisma: PrismaClient =
   });
 
 if (!isProd) {
-  const level = (process.env.LOG_LEVEL || "debug").toLowerCase();
-  if (level === "debug" || level === "trace") {
+  const level = (process.env.LOG_LEVEL || 'debug').toLowerCase();
+  if (level === 'debug' || level === 'trace') {
     // Lightweight query logger (do not log params to avoid secrets)
-    prisma.$on("query", (e) => {
-      logger.debug(
-        { durationMs: e.duration, query: e.query },
-        "Prisma query executed"
-      );
+    prisma.$on('query', (e) => {
+      logger.debug({ durationMs: e.duration, query: e.query }, 'Prisma query executed');
     });
   }
 }

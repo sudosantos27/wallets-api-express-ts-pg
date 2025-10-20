@@ -1,32 +1,32 @@
 // Wallets HTTP routes (protected).
 
-import { Router } from "express";
-import { requireAuth } from "../middleware/auth";
+import { Router } from 'express';
+import { requireAuth } from '../middleware/auth';
 import {
   listWallets,
   getWallet,
   createWallet,
   updateWallet,
   deleteWallet,
-} from "../controllers/wallet.controller";
+} from '../controllers/wallet.controller';
 
 const router = Router();
 
 router.use(requireAuth);
 
 // GET /wallets
-router.get("/", listWallets);
+router.get('/', listWallets);
 
 // POST /wallets
-router.post("/", createWallet);
+router.post('/', createWallet);
 
 // GET /wallets/:id
-router.get("/:id", getWallet);
+router.get('/:id', getWallet);
 
 // PUT /wallets/:id
-router.put("/:id", updateWallet);
+router.put('/:id', updateWallet);
 
 // DELETE /wallets/:id
-router.delete("/:id", deleteWallet);
+router.delete('/:id', deleteWallet);
 
 export default router;

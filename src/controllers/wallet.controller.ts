@@ -1,8 +1,12 @@
 // Wallet controller: request/response mapping for user-scoped wallet CRUD.
 
-import { Request, Response, NextFunction } from "express";
-import { WalletIdParamSchema, CreateWalletBodySchema, UpdateWalletBodySchema } from "../schemas/wallet.schema";
-import { walletService } from "../services/wallet.service";
+import { Request, Response, NextFunction } from 'express';
+import {
+  WalletIdParamSchema,
+  CreateWalletBodySchema,
+  UpdateWalletBodySchema,
+} from '../schemas/wallet.schema';
+import { walletService } from '../services/wallet.service';
 
 export const listWallets = async (req: Request, res: Response, next: NextFunction) => {
   try {
