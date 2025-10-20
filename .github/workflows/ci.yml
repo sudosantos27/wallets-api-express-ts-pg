@@ -1,6 +1,5 @@
 # GitHub Actions CI pipeline for build, lint, typecheck, DB migrations, tests & coverage.
-# Uses a job-scoped PostgreSQL service and waits for it to become ready
-# before running Prisma migrations to avoid flakiness.
+# Runs on a VM (not a container job), so service ports must be published and reached via localhost.
 
 name: CI
 
@@ -22,20 +21,19 @@ jobs:
           POSTGRES_USER: app
           POSTGRES_PASSWORD: app
           POSTGRES_DB: walletsdb_test
-        # Built-in healthcheck to ensure the DB becomes ready.
-        # The job network gives us the hostname "postgres".
+        # Publish container port 5432 to the runner, so we can reach it via localhost:5432
+        ports:
+          - "5432:5432"
+        # Healthcheck helps ensure the DB is accepting connections.
         options: >-
           --health-cmd="pg_isready -U app -d walletsdb_test"
           --health-interval=5s
           --health-timeout=5s
           --health-retries=10
-        # If you need to debug locally, you can map ports (not required in CI):
-        # ports:
-        #   - 5432:5432
 
     env:
-      # Use the service hostname "postgres" inside the job network:
-      DATABASE_URL: postgresql://app:app@postgres:5432/walletsdb_test?schema=public
+      # IMPORTANT: since this job is NOT a container job, use localhost here.
+      DATABASE_URL: postgresql://app:app@localhost:5432/walletsdb_test?schema=public
       JWT_SECRET: ci-secret
       JWT_EXPIRES_IN: 15m
       REFRESH_TOKEN_EXPIRES_IN: 7d
@@ -61,10 +59,10 @@ jobs:
       - name: Generate Prisma client
         run: npx prisma generate
 
-      # Important: some Postgres images report "healthy" before fully accepting TCP.
-      # This explicit wait reduces flakiness for the next step (migrations).
+      # Explicit wait for the TCP port to become reachable on localhost:5432.
+      # (Uses npx to install wait-on if not present.)
       - name: Wait for Postgres (TCP 5432)
-        run: npx wait-on -t 120000 tcp:postgres:5432
+        run: npx wait-on -t 120000 tcp:localhost:5432
 
       - name: Apply DB migrations (non-interactive)
         run: npx prisma migrate deploy
@@ -97,8 +95,9 @@ jobs:
           path: coverage/lcov.info
           if-no-files-found: error
 
-      # Optional debug helpers (uncomment if you need to inspect the Postgres container)
-      # - name: Debug services
-      #   run: |
-      #     docker ps
-      #     docker logs "$(docker ps --format '{{.Names}}' | grep postgres)" --tail 200 || true
+      # Helpful debug on failure: show running containers & last Postgres logs
+      - name: Debug Postgres logs on failure
+        if: failure()
+        run: |
+          docker ps
+          docker logs "$(docker ps --format '{{.Names}}' | grep postgres)" --tail 200 || true
