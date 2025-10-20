@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Wallets API
-  version: "1.0.0"
+  version: '1.0.0'
   description: |
     Backend API for managing users' wallets with JWT authentication.
     - Sign-in to obtain an access token.
@@ -102,7 +102,7 @@ paths:
               $ref: '#/components/schemas/SignInInput'
             examples:
               default:
-                value: { email: "alice@example.com", password: "Password123!" }
+                value: { email: 'alice@example.com', password: 'Password123!' }
       responses:
         '200':
           description: Access token issued
@@ -123,7 +123,7 @@ paths:
                 $ref: '#/components/schemas/SignInResponse'
               examples:
                 default:
-                  value: { accessToken: "eyJhbGciOi..." }
+                  value: { accessToken: 'eyJhbGciOi...' }
         '400':
           description: Invalid input
           headers:
@@ -281,13 +281,13 @@ paths:
               examples:
                 default:
                   value:
-                    - id: "00000000-0000-0000-0000-000000000001"
-                      userId: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
-                      tag: "Main"
-                      chain: "ethereum"
-                      address: "0x1111111111111111111111111111111111111111"
-                      createdAt: "2025-10-17T03:04:49.304Z"
-                      updatedAt: "2025-10-17T03:04:49.304Z"
+                    - id: '00000000-0000-0000-0000-000000000001'
+                      userId: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'
+                      tag: 'Main'
+                      chain: 'ethereum'
+                      address: '0x1111111111111111111111111111111111111111'
+                      createdAt: '2025-10-17T03:04:49.304Z'
+                      updatedAt: '2025-10-17T03:04:49.304Z'
         '401':
           description: Missing/invalid token
           headers:
@@ -332,7 +332,12 @@ paths:
             schema: { $ref: '#/components/schemas/WalletCreateInput' }
             examples:
               default:
-                value: { tag: "Cold Storage", chain: "bitcoin", address: "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kygt080" }
+                value:
+                  {
+                    tag: 'Cold Storage',
+                    chain: 'bitcoin',
+                    address: 'bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kygt080',
+                  }
       responses:
         '201':
           description: Created
@@ -344,13 +349,13 @@ paths:
               examples:
                 created:
                   value:
-                    id: "dd9c01ed-9bf4-4a4f-989c-5b786917862a"
-                    userId: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
-                    tag: "Cold Storage"
-                    chain: "bitcoin"
-                    address: "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kygt080"
-                    createdAt: "2025-10-17T17:25:14.766Z"
-                    updatedAt: "2025-10-17T17:25:14.766Z"
+                    id: 'dd9c01ed-9bf4-4a4f-989c-5b786917862a'
+                    userId: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'
+                    tag: 'Cold Storage'
+                    chain: 'bitcoin'
+                    address: 'bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kygt080'
+                    createdAt: '2025-10-17T17:25:14.766Z'
+                    updatedAt: '2025-10-17T17:25:14.766Z'
         '400':
           description: Invalid input
           headers:
@@ -396,7 +401,7 @@ paths:
                       code: CONFLICT
                       message: Resource already exists
                       details:
-                        - target: ["address"]
+                        - target: ['address']
                       requestId: 3c4d60
         '429':
           description: Too Many Requests (rate limit)
@@ -438,13 +443,13 @@ paths:
               examples:
                 default:
                   value:
-                    id: "00000000-0000-0000-0000-000000000001"
-                    userId: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
-                    tag: "Main"
-                    chain: "ethereum"
-                    address: "0x1111111111111111111111111111111111111111"
-                    createdAt: "2025-10-17T03:04:49.304Z"
-                    updatedAt: "2025-10-17T03:04:49.304Z"
+                    id: '00000000-0000-0000-0000-000000000001'
+                    userId: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'
+                    tag: 'Main'
+                    chain: 'ethereum'
+                    address: '0x1111111111111111111111111111111111111111'
+                    createdAt: '2025-10-17T03:04:49.304Z'
+                    updatedAt: '2025-10-17T03:04:49.304Z'
         '401':
           description: Missing/invalid token
           headers:
@@ -499,7 +504,12 @@ paths:
             schema: { $ref: '#/components/schemas/WalletUpdateInput' }
             examples:
               default:
-                value: { tag: "Primary", chain: "ethereum", address: "0x2222222222222222222222222222222222222222" }
+                value:
+                  {
+                    tag: 'Primary',
+                    chain: 'ethereum',
+                    address: '0x2222222222222222222222222222222222222222',
+                  }
       responses:
         '200':
           description: Updated wallet
@@ -567,7 +577,7 @@ paths:
                       code: CONFLICT
                       message: Resource already exists
                       details:
-                        - target: ["address"]
+                        - target: ['address']
                       requestId: 5e6f73
         '429':
           description: Too Many Requests (rate limit)

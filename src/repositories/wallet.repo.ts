@@ -1,6 +1,6 @@
 // Wallet repository: user-scoped access patterns to prevent resource leaks.
 
-import { prisma } from "../lib/prisma";
+import { prisma } from '../lib/prisma';
 
 export type WalletCreateData = {
   tag?: string | null;
@@ -18,7 +18,7 @@ export const walletRepo = {
   findAllByUserId: (userId: string) =>
     prisma.wallet.findMany({
       where: { userId },
-      orderBy: { createdAt: "desc" },
+      orderBy: { createdAt: 'desc' },
     }),
 
   findByIdAndUserId: (id: string, userId: string) =>

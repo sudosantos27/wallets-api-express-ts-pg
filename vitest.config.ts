@@ -6,11 +6,15 @@ export default defineConfig({
     setupFiles: ['test/setup.ts'],
     globals: false,
     reporters: 'default',
+    include: ['test/**/*.test.ts'],
+    exclude: ['dist/**', 'node_modules/**'],
+
     coverage: {
       provider: 'v8',
       reportsDirectory: 'coverage',
-      reports: ['text', 'lcov'],
+      reporter: ['text', 'lcov', 'html'],
       exclude: [
+        'dist/**',
         'prisma/**',
         'src/server.ts',
         'src/docs/**',
@@ -20,8 +24,10 @@ export default defineConfig({
         'eslint.config.cjs',
         'vitest.config.ts',
         'src/lib/prisma.ts',
-        "src/env.schema.ts",
+        'src/env.schema.ts',
         'src/lib/logger.ts',
+        'src/middleware/cors.ts',
+        'src/middleware/request-id.ts',
       ],
       thresholds: { statements: 85, branches: 75, functions: 80, lines: 85 },
     },

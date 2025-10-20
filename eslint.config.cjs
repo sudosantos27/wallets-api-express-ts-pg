@@ -11,13 +11,7 @@ const globals = require('globals');
 module.exports = [
   // 1) Global ignores (replaces .eslintignore)
   {
-    ignores: [
-      'node_modules',
-      'dist',
-      'coverage',
-      '.prisma',
-      'prisma/migrations',
-    ],
+    ignores: ['node_modules', 'dist', 'coverage', '.prisma', 'prisma/migrations'],
   },
 
   {

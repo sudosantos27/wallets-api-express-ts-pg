@@ -1,4 +1,4 @@
-version: "3.9"
+version: '3.9'
 
 services:
   db:
@@ -8,11 +8,11 @@ services:
       POSTGRES_PASSWORD: app
       POSTGRES_DB: walletsdb
     ports:
-      - "5432:5432"
+      - '5432:5432'
     volumes:
       - db_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U app -d walletsdb"]
+      test: ['CMD-SHELL', 'pg_isready -U app -d walletsdb']
       interval: 5s
       timeout: 5s
       retries: 10
@@ -47,7 +47,7 @@ services:
       migrator:
         condition: service_completed_successfully
     ports:
-      - "3000:3000"
+      - '3000:3000'
     command: sh -lc "npm ci && npx prisma generate && npm run dev"
 
 volumes:

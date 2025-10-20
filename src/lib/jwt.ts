@@ -1,23 +1,28 @@
-// JWT helpers: sign and verify access tokens.
+// JWT helpers using jsonwebtoken v9 types.
+// - Consistent HS256 signing with subject (sub) claim.
+// - Narrow, predictable surface: sign/verify.
 
-import jwt from "jsonwebtoken";
-import { env } from "../env";
+import jwt, { JwtPayload, SignOptions, Secret } from 'jsonwebtoken';
+import { env } from '../env';
 
-type AccessTokenPayload = {
-  sub: string; // user id
+const baseSignOpts: SignOptions = {
+  algorithm: 'HS256',
 };
 
-export const signAccessToken = (userId: string) => {
-  const payload: AccessTokenPayload = { sub: userId };
-  const token = jwt.sign(payload, env.JWT_SECRET, {
-    algorithm: "HS256",
-    expiresIn: env.JWT_EXPIRES_IN,
-  });
-  return token;
-};
+/**
+ * Sign a JWT placing the user id in the standard `sub` (subject) claim.
+ */
+export function signAccessToken(
+  subject: string,
+  expiresIn: string | number = env.JWT_EXPIRES_IN,
+): string {
+  // Build options explicitly and force the shape to SignOptions to avoid overload confusion
+  const opts: SignOptions = { ...baseSignOpts, subject, expiresIn: expiresIn as any };
 
-export const verifyAccessToken = (token: string): AccessTokenPayload => {
-  const decoded = jwt.verify(token, env.JWT_SECRET) as AccessTokenPayload;
-  if (!decoded?.sub) throw new Error("Missing sub in token");
-  return decoded;
-};
+  // Hint the secret as `Secret` so TS picks the correct overload (options, not callback)
+  return jwt.sign({}, env.JWT_SECRET as Secret, opts);
+}
+
+export function verifyAccessToken<T extends object = JwtPayload>(token: string): T {
+  return jwt.verify(token, env.JWT_SECRET as Secret) as T;
+}

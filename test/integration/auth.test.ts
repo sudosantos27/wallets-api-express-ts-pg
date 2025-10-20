@@ -33,9 +33,6 @@ describe('Auth - /v1/signin & /v1/signout', () => {
 
     const token = signin.body.accessToken as string;
 
-    await request(app)
-      .post('/v1/signout')
-      .set('Authorization', `Bearer ${token}`)
-      .expect(204);
+    await request(app).post('/v1/signout').set('Authorization', `Bearer ${token}`).expect(204);
   });
 });

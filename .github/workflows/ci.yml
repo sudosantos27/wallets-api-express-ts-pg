@@ -1,10 +1,13 @@
+# GitHub Actions CI pipeline for build, lint, typecheck, DB migrations, tests & coverage.
+# Runs on a VM (not a container job), so service ports must be published and reached via localhost.
+
 name: CI
 
 on:
   push:
-    branches: ["**"]
+    branches: ['**'] # run on all branches
   pull_request:
-    branches: ["**"]
+    branches: ['**'] # run on all PRs
 
 jobs:
   build-and-test:
@@ -18,7 +21,10 @@ jobs:
           POSTGRES_USER: app
           POSTGRES_PASSWORD: app
           POSTGRES_DB: walletsdb_test
-        # No ports mapping needed; we'll use hostname "postgres" from the job.
+        # Publish container port 5432 to the runner, so we can reach it via localhost:5432
+        ports:
+          - '5432:5432'
+        # Healthcheck helps ensure the DB is accepting connections.
         options: >-
           --health-cmd="pg_isready -U app -d walletsdb_test"
           --health-interval=5s
@@ -26,8 +32,8 @@ jobs:
           --health-retries=10
 
     env:
-      # Use the service hostname "postgres" inside the job network:
-      DATABASE_URL: postgresql://app:app@postgres:5432/walletsdb_test?schema=public
+      # IMPORTANT: since this job is NOT a container job, use localhost here.
+      DATABASE_URL: postgresql://app:app@localhost:5432/walletsdb_test?schema=public
       JWT_SECRET: ci-secret
       JWT_EXPIRES_IN: 15m
       REFRESH_TOKEN_EXPIRES_IN: 7d
@@ -52,6 +58,11 @@ jobs:
 
       - name: Generate Prisma client
         run: npx prisma generate
+
+      # Explicit wait for the TCP port to become reachable on localhost:5432.
+      # (Uses npx to install wait-on if not present.)
+      - name: Wait for Postgres (TCP 5432)
+        run: npx wait-on -t 120000 tcp:localhost:5432
 
       - name: Apply DB migrations (non-interactive)
         run: npx prisma migrate deploy
@@ -84,13 +95,9 @@ jobs:
           path: coverage/lcov.info
           if-no-files-found: error
 
-      # Optional: OpenAPI lint (if you add @redocly/cli or spectral)
-      # - name: Lint OpenAPI
-      #   run: npx @redocly/cli lint src/docs/openapi.yaml
-
-      # Optional: Upload artifacts (coverage, OpenAPI JSON)
-      # - name: Upload coverage
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: coverage
-      #     path: coverage/
+      # Helpful debug on failure: show running containers & last Postgres logs
+      - name: Debug Postgres logs on failure
+        if: failure()
+        run: |
+          docker ps
+          docker logs "$(docker ps --format '{{.Names}}' | grep postgres)" --tail 200 || true
