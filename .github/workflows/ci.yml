@@ -1,0 +1,96 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        # Ephemeral PostgreSQL service for this job.
+        env:
+          POSTGRES_USER: app
+          POSTGRES_PASSWORD: app
+          POSTGRES_DB: walletsdb_test
+        # No ports mapping needed; we'll use hostname "postgres" from the job.
+        options: >-
+          --health-cmd="pg_isready -U app -d walletsdb_test"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+
+    env:
+      # Use the service hostname "postgres" inside the job network:
+      DATABASE_URL: postgresql://app:app@postgres:5432/walletsdb_test?schema=public
+      JWT_SECRET: ci-secret
+      JWT_EXPIRES_IN: 15m
+      REFRESH_TOKEN_EXPIRES_IN: 7d
+      PORT: 3000
+      NODE_ENV: test
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Prisma validate
+        run: npx prisma validate
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Apply DB migrations (non-interactive)
+        run: npx prisma migrate deploy
+
+      - name: Seed test data
+        run: npm run seed
+
+      - name: Lint (ESLint)
+        run: npm run lint
+
+      - name: Check formatting (Prettier)
+        run: npm run format:check
+
+      - name: Type check (no emit)
+        run: npx tsc --noEmit
+
+      - name: Build
+        run: npm run build
+
+      - name: Lint OpenAPI (Redocly)
+        run: npm run openapi:lint
+
+      - name: Tests (with coverage thresholds)
+        run: npm run coverage
+
+      - name: Upload coverage artifact (LCOV)
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-lcov
+          path: coverage/lcov.info
+          if-no-files-found: error
+
+      # Optional: OpenAPI lint (if you add @redocly/cli or spectral)
+      # - name: Lint OpenAPI
+      #   run: npx @redocly/cli lint src/docs/openapi.yaml
+
+      # Optional: Upload artifacts (coverage, OpenAPI JSON)
+      # - name: Upload coverage
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: coverage
+      #     path: coverage/

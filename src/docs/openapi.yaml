@@ -1,0 +1,756 @@
+openapi: 3.0.3
+info:
+  title: Wallets API
+  version: "1.0.0"
+  description: |
+    Backend API for managing users' wallets with JWT authentication.
+    - Sign-in to obtain an access token.
+    - Authenticated users can manage only their own wallets.
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: /
+    description: Current host (relative)
+
+security:
+  - bearerAuth: []
+
+tags:
+  - name: Auth
+    description: Endpoints for authentication and session management.
+  - name: Wallets
+    description: CRUD operations for user wallets.
+  - name: Health
+    description: Service health and readiness checks.
+
+paths:
+  /health:
+    get:
+      tags: [Health]
+      summary: Health check
+      operationId: healthCheck
+      security: []
+      responses:
+        '200':
+          description: Service is up
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestId' }
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: OK
+        '400':
+          description: Bad request
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestId' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+        '500':
+          description: Unexpected error
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestId' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                unexpected:
+                  value:
+                    error:
+                      code: INTERNAL_SERVER_ERROR
+                      message: Unexpected error
+                      requestId: 9f1b0f3a-2c5b-4f58-8f3e-0b1b90cdda77
+
+  /ready:
+    get:
+      tags: [Health]
+      summary: Readiness check (DB connectivity)
+      operationId: readinessCheck
+      security: []
+      responses:
+        '200':
+          description: Service is ready (DB reachable)
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestId' }
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: READY
+        '500':
+          description: DB not reachable / unexpected error
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestId' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+
+  /v1/signin:
+    post:
+      tags: [Auth]
+      summary: Sign in a user
+      operationId: signIn
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignInInput'
+            examples:
+              default:
+                value: { email: "alice@example.com", password: "Password123!" }
+      responses:
+        '200':
+          description: Access token issued
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestId' }
+            RateLimit-Limit:
+              description: Requests allowed per window.
+              schema: { type: integer, example: 100 }
+            RateLimit-Remaining:
+              description: Remaining requests in the current window.
+              schema: { type: integer, example: 99 }
+            RateLimit-Reset:
+              description: UTC epoch seconds when the current window resets.
+              schema: { type: integer, example: 1712345678 }
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignInResponse'
+              examples:
+                default:
+                  value: { accessToken: "eyJhbGciOi..." }
+        '400':
+          description: Invalid input
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestId' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                invalid_email:
+                  value:
+                    error:
+                      code: VALIDATION_ERROR
+                      message: Invalid input.
+                      details:
+                        - path: [email]
+                          message: Invalid email format
+                      requestId: 1a2b3c
+        '401':
+          description: Invalid credentials
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestId' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                invalid_creds:
+                  value:
+                    error:
+                      code: UNAUTHORIZED
+                      message: Invalid credentials
+                      requestId: 1a2b3d
+        '429':
+          description: Too Many Requests (rate limit)
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestId' }
+            RateLimit-Limit:
+              description: Requests allowed per window.
+              schema: { type: integer, example: 100 }
+            RateLimit-Remaining:
+              description: Remaining requests in the current window (likely 0).
+              schema: { type: integer, example: 0 }
+            RateLimit-Reset:
+              description: UTC epoch seconds when the current window resets.
+              schema: { type: integer, example: 1712345678 }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                too_many:
+                  value:
+                    error:
+                      code: TOO_MANY_REQUESTS
+                      message: Too many requests. Please try again later.
+                      requestId: 1a2b3f
+        '500':
+          description: Unexpected error
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestId' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                unexpected:
+                  value:
+                    error:
+                      code: INTERNAL_SERVER_ERROR
+                      message: Unexpected error
+                      requestId: 1a2b3e
+
+  /v1/signout:
+    post:
+      tags: [Auth]
+      summary: Sign out a user (stateless server, client should discard token)
+      operationId: signOut
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Signed out
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestId' }
+            RateLimit-Limit:
+              description: Requests allowed per window.
+              schema: { type: integer, example: 100 }
+            RateLimit-Remaining:
+              description: Remaining requests in the current window.
+              schema: { type: integer, example: 98 }
+            RateLimit-Reset:
+              description: UTC epoch seconds when the current window resets.
+              schema: { type: integer, example: 1712345678 }
+        '401':
+          description: Missing/invalid token
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestId' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                missing_bearer:
+                  value:
+                    error:
+                      code: UNAUTHORIZED
+                      message: Missing or invalid Authorization header
+                      requestId: 2b3c4d
+        '429':
+          description: Too Many Requests (rate limit)
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestId' }
+            RateLimit-Limit:
+              description: Requests allowed per window.
+              schema: { type: integer, example: 100 }
+            RateLimit-Remaining:
+              description: Remaining requests in the current window (likely 0).
+              schema: { type: integer, example: 0 }
+            RateLimit-Reset:
+              description: UTC epoch seconds when the current window resets.
+              schema: { type: integer, example: 1712345678 }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                too_many:
+                  value:
+                    error:
+                      code: TOO_MANY_REQUESTS
+                      message: Too many requests. Please try again later.
+                      requestId: 2b3c4e
+
+  /v1/wallets:
+    get:
+      tags: [Wallets]
+      summary: List wallets for authenticated user
+      operationId: listWallets
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Wallet list
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestId' }
+            RateLimit-Limit:
+              description: Requests allowed per window.
+              schema: { type: integer, example: 100 }
+            RateLimit-Remaining:
+              description: Remaining requests in the current window.
+              schema: { type: integer, example: 97 }
+            RateLimit-Reset:
+              description: UTC epoch seconds when the current window resets.
+              schema: { type: integer, example: 1712345678 }
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Wallet' }
+              examples:
+                default:
+                  value:
+                    - id: "00000000-0000-0000-0000-000000000001"
+                      userId: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+                      tag: "Main"
+                      chain: "ethereum"
+                      address: "0x1111111111111111111111111111111111111111"
+                      createdAt: "2025-10-17T03:04:49.304Z"
+                      updatedAt: "2025-10-17T03:04:49.304Z"
+        '401':
+          description: Missing/invalid token
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestId' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                invalid_token:
+                  value:
+                    error:
+                      code: UNAUTHORIZED
+                      message: Invalid or expired token
+                      requestId: aaaa-bbbb
+        '429':
+          description: Too Many Requests (rate limit)
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestId' }
+            RateLimit-Limit:
+              description: Requests allowed per window.
+              schema: { type: integer, example: 100 }
+            RateLimit-Remaining:
+              description: Remaining requests in the current window (likely 0).
+              schema: { type: integer, example: 0 }
+            RateLimit-Reset:
+              description: UTC epoch seconds when the current window resets.
+              schema: { type: integer, example: 1712345678 }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+
+    post:
+      tags: [Wallets]
+      summary: Create a new wallet for the authenticated user
+      operationId: createWallet
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/WalletCreateInput' }
+            examples:
+              default:
+                value: { tag: "Cold Storage", chain: "bitcoin", address: "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kygt080" }
+      responses:
+        '201':
+          description: Created
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestId' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Wallet' }
+              examples:
+                created:
+                  value:
+                    id: "dd9c01ed-9bf4-4a4f-989c-5b786917862a"
+                    userId: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+                    tag: "Cold Storage"
+                    chain: "bitcoin"
+                    address: "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kygt080"
+                    createdAt: "2025-10-17T17:25:14.766Z"
+                    updatedAt: "2025-10-17T17:25:14.766Z"
+        '400':
+          description: Invalid input
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestId' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                missing_address:
+                  value:
+                    error:
+                      code: VALIDATION_ERROR
+                      message: Invalid input.
+                      details:
+                        - path: [address]
+                          message: address is required
+                      requestId: 3c4d5e
+        '401':
+          description: Missing/invalid token
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestId' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                invalid_token:
+                  value:
+                    error:
+                      code: UNAUTHORIZED
+                      message: Invalid or expired token
+                      requestId: 3c4d5f
+        '409':
+          description: Address already exists (unique constraint)
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestId' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                duplicate_address:
+                  value:
+                    error:
+                      code: CONFLICT
+                      message: Resource already exists
+                      details:
+                        - target: ["address"]
+                      requestId: 3c4d60
+        '429':
+          description: Too Many Requests (rate limit)
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestId' }
+            RateLimit-Limit:
+              schema: { type: integer, example: 100 }
+            RateLimit-Remaining:
+              schema: { type: integer, example: 0 }
+            RateLimit-Reset:
+              schema: { type: integer, example: 1712345678 }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+
+  /v1/wallets/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: Wallet id (opaque UUID)
+    get:
+      tags: [Wallets]
+      summary: Retrieve wallet by id (must belong to the caller)
+      operationId: getWalletById
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Wallet details
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestId' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Wallet' }
+              examples:
+                default:
+                  value:
+                    id: "00000000-0000-0000-0000-000000000001"
+                    userId: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+                    tag: "Main"
+                    chain: "ethereum"
+                    address: "0x1111111111111111111111111111111111111111"
+                    createdAt: "2025-10-17T03:04:49.304Z"
+                    updatedAt: "2025-10-17T03:04:49.304Z"
+        '401':
+          description: Missing/invalid token
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestId' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                invalid_token:
+                  value:
+                    error:
+                      code: UNAUTHORIZED
+                      message: Invalid or expired token
+                      requestId: 4d5e6f
+        '404':
+          description: Wallet not found or not owned by caller
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestId' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                not_found:
+                  value:
+                    error:
+                      code: NOT_FOUND
+                      message: Wallet not found
+                      requestId: 4d5e70
+        '429':
+          description: Too Many Requests (rate limit)
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestId' }
+            RateLimit-Limit:
+              schema: { type: integer, example: 100 }
+            RateLimit-Remaining:
+              schema: { type: integer, example: 0 }
+            RateLimit-Reset:
+              schema: { type: integer, example: 1712345678 }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+    put:
+      tags: [Wallets]
+      summary: Update wallet (full replacement semantics)
+      operationId: updateWallet
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/WalletUpdateInput' }
+            examples:
+              default:
+                value: { tag: "Primary", chain: "ethereum", address: "0x2222222222222222222222222222222222222222" }
+      responses:
+        '200':
+          description: Updated wallet
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestId' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Wallet' }
+        '400':
+          description: Invalid input (PUT requires chain and address)
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestId' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                missing_address:
+                  value:
+                    error:
+                      code: VALIDATION_ERROR
+                      message: Invalid input.
+                      details:
+                        - path: [address]
+                          message: address is required
+                      requestId: 5e6f70
+        '401':
+          description: Missing/invalid token
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestId' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                invalid_token:
+                  value:
+                    error:
+                      code: UNAUTHORIZED
+                      message: Invalid or expired token
+                      requestId: 5e6f71
+        '404':
+          description: Wallet not found or not owned by caller
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestId' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                not_found:
+                  value:
+                    error:
+                      code: NOT_FOUND
+                      message: Wallet not found
+                      requestId: 5e6f72
+        '409':
+          description: Address conflict (unique constraint)
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestId' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                duplicate_address:
+                  value:
+                    error:
+                      code: CONFLICT
+                      message: Resource already exists
+                      details:
+                        - target: ["address"]
+                      requestId: 5e6f73
+        '429':
+          description: Too Many Requests (rate limit)
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestId' }
+            RateLimit-Limit:
+              schema: { type: integer, example: 100 }
+            RateLimit-Remaining:
+              schema: { type: integer, example: 0 }
+            RateLimit-Reset:
+              schema: { type: integer, example: 1712345678 }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+    delete:
+      tags: [Wallets]
+      summary: Delete wallet by id (must belong to the caller)
+      operationId: deleteWallet
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Deleted
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestId' }
+        '401':
+          description: Missing/invalid token
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestId' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                invalid_token:
+                  value:
+                    error:
+                      code: UNAUTHORIZED
+                      message: Invalid or expired token
+                      requestId: 6f7081
+        '404':
+          description: Wallet not found or not owned by caller
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestId' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                not_found:
+                  value:
+                    error:
+                      code: NOT_FOUND
+                      message: Wallet not found
+                      requestId: 6f7082
+        '429':
+          description: Too Many Requests (rate limit)
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestId' }
+            RateLimit-Limit:
+              schema: { type: integer, example: 100 }
+            RateLimit-Remaining:
+              schema: { type: integer, example: 0 }
+            RateLimit-Reset:
+              schema: { type: integer, example: 1712345678 }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  headers:
+    RequestId:
+      description: Correlation id for this request/response. Echoed as `X-Request-Id`.
+      schema:
+        type: string
+      example: 6ecf3f1a-1b73-4a48-b3d3-01fbd2c0d0e1
+
+  schemas:
+    SignInInput:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+          example: alice@example.com
+        password:
+          type: string
+          example: Password123!
+    SignInResponse:
+      type: object
+      required: [accessToken]
+      properties:
+        accessToken:
+          type: string
+          description: JWT access token (Bearer)
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+    Wallet:
+      type: object
+      required: [id, userId, chain, address, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        tag:
+          type: string
+          nullable: true
+          maxLength: 64
+        chain:
+          type: string
+          maxLength: 64
+          example: ethereum
+        address:
+          type: string
+          maxLength: 256
+          example: 0x1111111111111111111111111111111111111111
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    WalletCreateInput:
+      type: object
+      required: [chain, address]
+      properties:
+        tag:
+          type: string
+          nullable: true
+          maxLength: 64
+        chain:
+          type: string
+          maxLength: 64
+        address:
+          type: string
+          maxLength: 256
+
+    WalletUpdateInput:
+      type: object
+      required: [chain, address]
+      properties:
+        tag:
+          type: string
+          nullable: true
+          maxLength: 64
+        chain:
+          type: string
+          maxLength: 64
+        address:
+          type: string
+          maxLength: 256
+
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+              description: Application error code (e.g., VALIDATION_ERROR, UNAUTHORIZED, NOT_FOUND, CONFLICT, TOO_MANY_REQUESTS, INTERNAL_SERVER_ERROR)
+              example: VALIDATION_ERROR
+            message:
+              type: string
+              example: Invalid input.
+            details:
+              type: array
+              description: Optional structured details for validation/DB errors
+              items:
+                type: object
+                additionalProperties: true
+              nullable: true
+            requestId:
+              type: string
+              nullable: true

@@ -1,0 +1,32 @@
+# Node / build artifacts
+node_modules
+dist
+coverage
+.nyc_output
+
+# VCS & editor
+.git
+.gitignore
+.vscode
+.idea
+
+# Logs & misc
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Local env files
+.env
+.env.*
+!.env.example
+
+# Tooling/config you don't need in the image
+eslint.config.cjs
+.prettier*
+vitest.config.ts
+docker-compose*.yml
+
+# Prisma generated engines are placed under node_modules/.prisma during build
+# (we copy node_modules from the pruned stage).

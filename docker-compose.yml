@@ -1,0 +1,54 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+      POSTGRES_DB: walletsdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app -d walletsdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  migrator:
+    image: node:20-bookworm-slim
+    working_dir: /app
+    volumes:
+      - .:/app
+    environment:
+      DATABASE_URL: postgresql://app:app@db:5432/walletsdb?schema=public
+    depends_on:
+      db:
+        condition: service_healthy
+    command: sh -lc "npm ci && npx prisma generate && npx prisma migrate deploy"
+
+  api:
+    image: node:20-bookworm-slim
+    working_dir: /app
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      PORT: 3000
+      JWT_SECRET: change-this-in-prod
+      JWT_EXPIRES_IN: 60m
+      REFRESH_TOKEN_EXPIRES_IN: 7d
+      DATABASE_URL: postgresql://app:app@db:5432/walletsdb?schema=public
+    depends_on:
+      db:
+        condition: service_healthy
+      migrator:
+        condition: service_completed_successfully
+    ports:
+      - "3000:3000"
+    command: sh -lc "npm ci && npx prisma generate && npm run dev"
+
+volumes:
+  db_data:

@@ -1,0 +1,43 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  /// Primary key (UUID)
+  id        String   @id @default(uuid()) @db.Uuid
+  /// Unique email used for login
+  email     String   @unique
+  /// Hashed password (never store raw passwords)
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  wallets   Wallet[]
+}
+
+model Wallet {
+  /// Primary key (UUID)
+  id        String   @id @default(uuid()) @db.Uuid
+  /// Foreign key to User
+  userId    String   @db.Uuid
+  /// Optional human-friendly label for the wallet
+  tag       String?
+  /// Blockchain identifier (e.g., "ethereum", "bitcoin")
+  chain     String
+  /// Public address (globally unique per requirements)
+  address   String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+
+  /// NOTE: If you prefer uniqueness per chain, replace the @unique above with:
+  // @@unique([chain, address])
+}
