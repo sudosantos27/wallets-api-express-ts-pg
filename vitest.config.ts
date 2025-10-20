@@ -22,6 +22,8 @@ export default defineConfig({
         'src/lib/prisma.ts',
         'src/env.schema.ts',
         'src/lib/logger.ts',
+        'src/middleware/cors.ts',
+        'src/middleware/request-id.ts',
       ],
       thresholds: { statements: 85, branches: 75, functions: 80, lines: 85 },
     },
