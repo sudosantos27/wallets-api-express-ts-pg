@@ -14,7 +14,7 @@ const baseSignOpts: SignOptions = {
  */
 export function signAccessToken(
   subject: string,
-  expiresIn: string | number = env.JWT_EXPIRES_IN
+  expiresIn: string | number = env.JWT_EXPIRES_IN,
 ): string {
   // Build options explicitly and force the shape to SignOptions to avoid overload confusion
   const opts: SignOptions = { ...baseSignOpts, subject, expiresIn: expiresIn as any };

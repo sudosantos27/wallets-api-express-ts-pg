@@ -6,7 +6,6 @@ import { PrismaClient } from '@prisma/client';
 import { logger } from './logger';
 
 declare global {
-  // eslint-disable-next-line no-var
   var __prisma__: PrismaClient | undefined;
 }
 
@@ -17,7 +16,9 @@ const enableQueryEvents = !isProd && (level === 'debug' || level === 'trace');
 export const prisma: PrismaClient =
   global.__prisma__ ??
   new PrismaClient({
-    log: enableQueryEvents ? [{ emit: 'event', level: 'query' }, 'warn', 'error'] : ['warn', 'error'],
+    log: enableQueryEvents
+      ? [{ emit: 'event', level: 'query' }, 'warn', 'error']
+      : ['warn', 'error'],
   });
 
 if (enableQueryEvents) {
