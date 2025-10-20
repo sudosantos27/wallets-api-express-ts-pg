@@ -1,0 +1,203 @@
+{
+  "info": {
+    "name": "Wallets API (Express + TS + Prisma)",
+    "description": "Collection to exercise Auth, Health and Wallets endpoints. Uses environment variables for baseUrl and accessToken.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "GET /health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            }
+          }
+        },
+        {
+          "name": "GET /ready",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/ready",
+              "host": ["{{baseUrl}}"],
+              "path": ["ready"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "POST /v1/signin",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/v1/signin",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "signin"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{userEmail}}\",\n  \"password\": \"{{userPassword}}\"\n}"
+            },
+            "auth": { "type": "noauth" }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const json = pm.response.json();",
+                  "pm.expect(json).to.have.property('accessToken');",
+                  "pm.environment.set('accessToken', json.accessToken);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /v1/signout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/signout",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "signout"]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Wallets",
+      "item": [
+        {
+          "name": "GET /v1/wallets",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/wallets",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "wallets"]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }]
+            }
+          }
+        },
+        {
+          "name": "POST /v1/wallets",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/v1/wallets",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "wallets"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tag\": \"{{walletTag}}\",\n  \"chain\": \"{{walletChain}}\",\n  \"address\": \"{{walletAddress}}\"\n}"
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status is 201', function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "const json = pm.response.json();",
+                  "pm.environment.set('walletId', json.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /v1/wallets/:id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/wallets/{{walletId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "wallets", "{{walletId}}"]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }]
+            }
+          }
+        },
+        {
+          "name": "PUT /v1/wallets/:id",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/v1/wallets/{{walletId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "wallets", "{{walletId}}"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tag\": \"Primary\",\n  \"chain\": \"ethereum\",\n  \"address\": \"0x2222222222222222222222222222222222222222\"\n}"
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }]
+            }
+          }
+        },
+        {
+          "name": "DELETE /v1/wallets/:id",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/wallets/{{walletId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "wallets", "{{walletId}}"]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
