@@ -42,9 +42,7 @@
           "name": "POST /v1/signin",
           "request": {
             "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" }
-            ],
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
             "url": {
               "raw": "{{baseUrl}}/v1/signin",
               "host": ["{{baseUrl}}"],
@@ -115,9 +113,7 @@
           "name": "POST /v1/wallets",
           "request": {
             "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" }
-            ],
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
             "url": {
               "raw": "{{baseUrl}}/v1/wallets",
               "host": ["{{baseUrl}}"],
@@ -169,9 +165,7 @@
           "name": "PUT /v1/wallets/:id",
           "request": {
             "method": "PUT",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" }
-            ],
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
             "url": {
               "raw": "{{baseUrl}}/v1/wallets/{{walletId}}",
               "host": ["{{baseUrl}}"],
