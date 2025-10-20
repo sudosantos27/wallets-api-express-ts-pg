@@ -6,11 +6,15 @@ export default defineConfig({
     setupFiles: ['test/setup.ts'],
     globals: false,
     reporters: 'default',
+    include: ['test/**/*.test.ts'],
+    exclude: ['dist/**', 'node_modules/**'],
+
     coverage: {
       provider: 'v8',
       reportsDirectory: 'coverage',
       reporter: ['text', 'lcov', 'html'],
       exclude: [
+        'dist/**',
         'prisma/**',
         'src/server.ts',
         'src/docs/**',
