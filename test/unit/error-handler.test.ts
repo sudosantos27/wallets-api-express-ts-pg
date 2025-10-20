@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
 import type { Request, Response, NextFunction } from "express";
 import { ZodError, z } from "zod";
 import { errorHandler } from "../../src/middleware/error";
-import { ApiError, unauthorized } from "../../src/lib/http";
+import { unauthorized } from "../../src/lib/http";
 import { logger } from "../../src/lib/logger";
 
 function createMockRes() {
