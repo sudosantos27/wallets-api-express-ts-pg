@@ -3,6 +3,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { unauthorized } from '../lib/http';
 import { verifyAccessToken } from '../lib/jwt';
+import type { JwtPayload } from 'jsonwebtoken';
 
 export type AuthUser = { id: string };
 
@@ -15,7 +16,13 @@ export const requireAuth = (req: Request, _res: Response, next: NextFunction) =>
   const token = header.split(/\s+/)[1];
 
   try {
-    const payload = verifyAccessToken(token);
+    const payload = verifyAccessToken<JwtPayload>(token);
+
+    // Ensure we have a proper subject claim
+    if (typeof payload.sub !== 'string' || !payload.sub) {
+      return next(unauthorized('Invalid token payload'));
+    }
+
     req.user = { id: payload.sub };
     return next();
   } catch {

@@ -9,7 +9,7 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reportsDirectory: 'coverage',
-      reports: ['text', 'lcov'],
+      reporter: ['text', 'lcov', 'html'],
       exclude: [
         'prisma/**',
         'src/server.ts',

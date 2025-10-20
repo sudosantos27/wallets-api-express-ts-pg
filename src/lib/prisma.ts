@@ -6,29 +6,28 @@ import { PrismaClient } from '@prisma/client';
 import { logger } from './logger';
 
 declare global {
+  // eslint-disable-next-line no-var
   var __prisma__: PrismaClient | undefined;
 }
 
 const isProd = process.env.NODE_ENV === 'production';
+const level = (process.env.LOG_LEVEL || 'debug').toLowerCase();
+const enableQueryEvents = !isProd && (level === 'debug' || level === 'trace');
 
 export const prisma: PrismaClient =
   global.__prisma__ ??
   new PrismaClient({
-    // You can also enable Prisma's built-in log option if desired.
-    // log: isProd ? [] : [{ emit: 'event', level: 'query' }, 'warn', 'error'],
+    log: enableQueryEvents ? [{ emit: 'event', level: 'query' }, 'warn', 'error'] : ['warn', 'error'],
   });
 
-if (!isProd) {
-  const level = (process.env.LOG_LEVEL || 'debug').toLowerCase();
-  if (level === 'debug' || level === 'trace') {
-    // Lightweight query logger (do not log params to avoid secrets)
-    prisma.$on('query', (e) => {
-      logger.debug({ durationMs: e.duration, query: e.query }, 'Prisma query executed');
-    });
-  }
+if (enableQueryEvents) {
+  // Cast to any to sidestep Prisma's event generic resolving to `never` in some versions
+  (prisma as any).$on('query', (e: any) => {
+    // Avoid logging params to prevent secret leaks
+    logger.debug({ durationMs: e.duration, query: e.query }, 'Prisma query executed');
+  });
 }
 
-// Ensure a single instance in dev (hot reloads)
 if (!isProd) {
-  (global as any).__prisma__ = prisma;
+  global.__prisma__ = prisma;
 }

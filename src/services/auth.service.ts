@@ -7,7 +7,6 @@ import { signAccessToken } from '../lib/jwt';
 
 export const authService = {
   async signIn(email: string, password: string) {
-    // Email must be normalized at validation layer; we assume it's lowercase already.
     const user = await userRepo.findByEmail(email);
     if (!user) throw unauthorized('Invalid credentials');
 
@@ -18,9 +17,7 @@ export const authService = {
     return { accessToken };
   },
 
-  // Stateless sign-out: the client should discard the token after this call.
   async signOut() {
-    // In a stateless setup, nothing to do server-side.
     return;
   },
 };
