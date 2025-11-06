@@ -3,7 +3,9 @@
 Documentation for the custom middleware bundled with the Wallets API (`src/middleware`). These components harden the HTTP surface, enforce authentication, and provide consistent operational tooling (observability, rate limiting, error handling).
 
 ## Execution Order in `src/app.ts`
+
 Middleware runs in the following sequence:
+
 1. `requestId` – generates/reuses correlation ids before logging.
 2. `pino-http` (configured in `app.ts`) – uses the correlation id for structured logs.
 3. Security/parsing: `helmet`, `buildCors`, `express.json`, `compression`.
@@ -16,6 +18,7 @@ Middleware runs in the following sequence:
 The order matters: `requestId` precedes logging, and `rateLimiter` wraps the API surface before controllers run.
 
 ## `request-id.ts`
+
 - **Purpose**: Guarantees every request carries a correlation id accessible to logs and clients.
 - **Behavior**:
   - Reuses `X-Request-Id` header if provided; otherwise generates a UUID (`crypto.randomUUID`).
@@ -24,6 +27,7 @@ The order matters: `requestId` precedes logging, and `rateLimiter` wraps the API
 - **Key Integration**: `pino-http` uses the existing id via its `genReqId` option to avoid duplicate identifiers.
 
 ## `cors.ts`
+
 - **Purpose**: Provides an environment-aware `cors` configuration.
 - **Configuration**:
   - Production: enforces an explicit whitelist defined via `CORS_ORIGINS` (comma-separated). Browser requests with origins outside the list are rejected; non-browser clients (no Origin header) are allowed.
@@ -32,6 +36,7 @@ The order matters: `requestId` precedes logging, and `rateLimiter` wraps the API
 - **Usage**: `buildCors()` is invoked in `app.ts` so the calling environment decides the policy.
 
 ## `rate-limit.ts`
+
 - **Purpose**: Throttles incoming requests to `/v1/*` using `express-rate-limit`.
 - **Defaults**:
   - Window: 15 minutes (`RATE_LIMIT_WINDOW_MS`, optional override).
@@ -43,6 +48,7 @@ The order matters: `requestId` precedes logging, and `rateLimiter` wraps the API
 - **Mounting**: Applied in `app.ts` as `app.use('/v1', rateLimiter)`, leaving health/docs endpoints unthrottled.
 
 ## `auth.ts`
+
 - **Purpose**: Enforces Bearer JWT authentication.
 - **Workflow**:
   1. Validates the `Authorization` header matches `Bearer <token>` format.
@@ -52,6 +58,7 @@ The order matters: `requestId` precedes logging, and `rateLimiter` wraps the API
 - **Notes**: Designed for route-level composition (`router.use(requireAuth)` in `wallet.routes.ts`).
 
 ## `error.ts`
+
 - **Purpose**: Centralized error handling for the entire app.
 - **Responsibilities**:
   - Pass-through for known `ApiError` instances (ensures status/code/message propagate).

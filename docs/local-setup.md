@@ -3,6 +3,7 @@
 Step-by-step guide for running the Wallets API locally, including environment variables, database provisioning, and helpful scripts.
 
 ## 1. Prerequisites
+
 - **Node.js 18+** (20 recommended) with matching `npm`
 - **Docker + Docker Compose** for the local PostgreSQL instance
 - Optional: `curl`/HTTP client, `psql`, or Prisma Studio for DB inspection
@@ -27,6 +28,7 @@ npm ci        # uses package-lock.json for reproducible installs
 > Use `npm install` if you are actively modifying dependencies; `npm ci` is ideal for clean installs.
 
 ## 3. Configure Environment Variables
+
 Copy the sample env file (or create a new `.env` at the project root) and adjust values as needed.
 
 ```bash
@@ -50,11 +52,13 @@ PRETTY_LOGS=true
 ```
 
 Notes:
+
 - Keep `DATABASE_URL` host as `localhost` for local runs without Docker networking.
 - When using Docker Compose services, the DB host is `db` (`postgresql://app:app@db:5432/...`).
 - Set `CORS_ORIGINS` to a comma-separated list if you need browser access from known origins.
 
 ## 4. Boot the Database
+
 Start the PostgreSQL container defined in `docker-compose.yml`.
 
 ```bash
@@ -68,6 +72,7 @@ docker compose logs db
 ```
 
 ## 5. Prisma Client, Migrations, Seed
+
 Generate the Prisma client and apply migrations before running the app.
 
 ```bash
@@ -82,6 +87,7 @@ npm run seed
 ```
 
 Seeded accounts:
+
 - `alice@example.com` / `Password123!`
 - `bob@example.com` / `Password123!`
 
@@ -96,12 +102,14 @@ npm run dev
 ```
 
 Alternative logging levels:
+
 - `npm run dev:info` – human-readable logs, fewer details.
 - `npm run dev:debug` – verbose logs + pretty-print.
 
 The service listens on `http://localhost:${PORT}` (default `3000`).
 
 ### Helpful endpoints
+
 - `GET /health` – liveness probe
 - `GET /ready` – readiness + database check
 - `POST /v1/signin` – obtain JWT access token
@@ -129,6 +137,7 @@ npm run openapi:lint # Lint the OpenAPI spec with Redocly
 Use `npm run test:watch` during development for live feedback.
 
 ## 9. Common Troubleshooting
+
 - **Prisma migrate errors**: ensure the DB container is running and that `.env` matches the container host/port; rerun `prisma migrate dev`.
 - **JWT errors (401)**: confirm you are sending `Authorization: Bearer <accessToken>` from `/v1/signin`.
 - **Database conflicts**: wallet addresses are globally unique—delete duplicates or adjust the unique constraint if needed.

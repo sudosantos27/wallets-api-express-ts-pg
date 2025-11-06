@@ -1,6 +1,7 @@
 # API Endpoint Documentation
 
 ## Overview
+
 RESTful JSON API for the Wallets service. All endpoints return RFC 7807-style error payloads and surface a correlation id in the `X-Request-Id` header. Versioned under `/v1`; health probes live at the root.
 
 Base path: `/`  
@@ -14,6 +15,7 @@ Rate limiting: Responses may include `RateLimit-Limit`, `RateLimit-Remaining`, a
 ## Authentication
 
 ### POST /v1/signin
+
 Exchange user credentials for a short-lived access token.
 
 - Headers: `Content-Type: application/json`
@@ -32,10 +34,12 @@ Exchange user credentials for a short-lived access token.
   - `500 INTERNAL_SERVER_ERROR` – Unexpected failure
 
 Notes:
+
 - Email is trimmed and lowercased before validation (`SignInBodySchema`).
 - Tokens carry the user id in the JWT subject (`signAccessToken`).
 
 ### POST /v1/signout
+
 Stateless endpoint; client should discard the access token.
 
 - Auth required (`Authorization: Bearer <token>`)
@@ -52,6 +56,7 @@ Stateless endpoint; client should discard the access token.
 All wallet routes require a valid Bearer token; middleware (`requireAuth`) verifies the JWT and injects `req.user.id`.
 
 ### GET /v1/wallets
+
 List wallets owned by the caller.
 
 - Responses:
@@ -62,9 +67,11 @@ List wallets owned by the caller.
 Returns objects with `id`, `userId`, `tag`, `chain`, `address`, `createdAt`, `updatedAt`.
 
 ### POST /v1/wallets
+
 Create a new wallet bound to the caller.
 
 - Body:
+
   ```json
   {
     "tag": "Cold Storage",
@@ -72,6 +79,7 @@ Create a new wallet bound to the caller.
     "address": "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kygt080"
   }
   ```
+
   `tag` optional (≤64 chars), `chain` and `address` required (≤64/256 chars respectively).
 
 - Responses:
@@ -82,10 +90,12 @@ Create a new wallet bound to the caller.
   - `429 TOO_MANY_REQUESTS`
 
 Notes:
+
 - Omitted `tag` stored as `null`.
 - `address` globally unique (`Wallet_address_key`).
 
 ### GET /v1/wallets/{id}
+
 Fetch a single wallet the caller owns.
 
 - Path param `id` (UUID)
@@ -96,6 +106,7 @@ Fetch a single wallet the caller owns.
   - `429 TOO_MANY_REQUESTS`
 
 ### PUT /v1/wallets/{id}
+
 Full update of wallet properties.
 
 - Path param `id` (UUID)
@@ -109,10 +120,12 @@ Full update of wallet properties.
   - `429 TOO_MANY_REQUESTS`
 
 Business rules:
+
 - Missing `tag` clears it to `null`.
 - Ownership enforced via user-scoped queries.
 
 ### DELETE /v1/wallets/{id}
+
 Remove a wallet owned by the caller.
 
 - Path param `id` (UUID)
@@ -127,6 +140,7 @@ Deletion uses `deleteMany` with ownership filters to prevent cross-user deletes.
 ---
 
 ## Error Model
+
 Errors follow:
 
 ```json
@@ -145,6 +159,7 @@ Common codes: `VALIDATION_ERROR`, `UNAUTHORIZED`, `NOT_FOUND`, `CONFLICT`, `INTE
 ---
 
 ## Headers & Conventions
+
 - `Authorization`: Bearer token for protected routes.
 - `X-Request-Id`: Present on all responses; echo in support requests.
 - `Content-Type`: Always `application/json`.
